@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
       });
       */
       console.log(
-        `[CRON EMAIL DISPATCH SIMULATION] Sent report email to ${summary.email} (${summary.fullName}) -> Total Spent: $${summary.totalSpent}, Transactions: ${summary.transactionCount}, Top Category: ${summary.topCategory}`
+        `[CRON EMAIL DISPATCH SIMULATION] Sent report email to ${summary.email} (${summary.fullName}) -> Total Spent: ₹${summary.totalSpent}, Transactions: ${summary.transactionCount}, Top Category: ${summary.topCategory}`
       );
     }
 

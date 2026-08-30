@@ -66,7 +66,7 @@ export default function CategoryPieChart({ expenses }: CategoryPieChartProps) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [`$${value.toFixed(2)}`, 'Amount']}
+              formatter={(value: number) => [`₹${value.toFixed(2)}`, 'Amount']}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 borderColor: '#e2e8f0',

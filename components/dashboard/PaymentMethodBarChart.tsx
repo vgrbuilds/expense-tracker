@@ -68,10 +68,10 @@ export default function PaymentMethodBarChart({ expenses }: PaymentMethodBarChar
               tickLine={false}
               axisLine={false}
               tick={{ fill: '#64748b', fontSize: 12 }}
-              tickFormatter={(value) => `$${value}`}
+              tickFormatter={(value) => `₹${value}`}
             />
             <Tooltip
-              formatter={(value: number) => [`$${value.toFixed(2)}`, 'Spent']}
+              formatter={(value: number) => [`₹${value.toFixed(2)}`, 'Spent']}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 borderColor: '#e2e8f0',

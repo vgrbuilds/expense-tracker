@@ -23,11 +23,22 @@ export default function ExpenseForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Grocery');
+  const [customCategory, setCustomCategory] = useState<string>('');
   const [todayDate] = useState(() => new Date().toISOString().split('T')[0]);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const formData = new FormData(e.currentTarget);
+
+    // If 'Others' is selected and custom category is typed, override category value
+    if (selectedCategory === 'Others') {
+      const finalCategory = customCategory.trim() !== '' ? customCategory.trim() : 'Others';
+      formData.set('category', finalCategory);
+    }
 
     const result = await addExpense(formData);
     setLoading(false);
@@ -36,6 +47,8 @@ export default function ExpenseForm() {
       setError(result.error);
     } else {
       formRef.current?.reset();
+      setSelectedCategory('Grocery');
+      setCustomCategory('');
     }
   }
 
@@ -53,7 +66,7 @@ export default function ExpenseForm() {
         </div>
       )}
 
-      <form ref={formRef} action={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <div className="lg:col-span-2">
           <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
             Expense Description
@@ -69,7 +82,7 @@ export default function ExpenseForm() {
 
         <div>
           <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-            Amount ($)
+            Amount (₹)
           </label>
           <input
             type="number"
@@ -101,7 +114,8 @@ export default function ExpenseForm() {
           </label>
           <select
             name="category"
-            defaultValue="Grocery"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
             required
             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50"
           >
@@ -130,6 +144,22 @@ export default function ExpenseForm() {
             ))}
           </select>
         </div>
+
+        {selectedCategory === 'Others' && (
+          <div className="md:col-span-2 lg:col-span-6 animate-fadeIn bg-sky-50/50 p-3.5 rounded-xl border border-sky-100">
+            <label className="block text-xs font-semibold uppercase text-sky-700 mb-1">
+              Custom Category Name
+            </label>
+            <input
+              type="text"
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+              placeholder="Type your custom category (e.g. Subscriptions, Gifts, Mutual Funds)..."
+              required
+              className="w-full px-3.5 py-2.5 rounded-xl border border-sky-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-white"
+            />
+          </div>
+        )}
 
         <div className="md:col-span-2 lg:col-span-6 flex justify-end">
           <button

@@ -7,7 +7,8 @@ export type ExpenseCategory =
   | 'Entertainment'
   | 'Healthcare'
   | 'Shopping'
-  | 'Others';
+  | 'Others'
+  | string;
 
 export type PaymentMethod = 'Cash' | 'Credit Card' | 'UPI';
 
@@ -17,7 +18,7 @@ export interface Expense {
   title: string;
   amount: number;
   date: string;
-  category: ExpenseCategory;
+  category: string;
   payment_method: PaymentMethod;
   created_at: string;
 }

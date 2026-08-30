@@ -88,7 +88,7 @@ export default function ExpenseList({ expenses }: ExpenseListProps) {
                   </span>
                 </td>
                 <td className="px-5 py-4 text-right font-bold text-slate-900">
-                  ${Number(expense.amount).toFixed(2)}
+                  ₹{Number(expense.amount).toFixed(2)}
                 </td>
                 <td className="px-5 py-4 text-center">
                   <button

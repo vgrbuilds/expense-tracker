@@ -1,5 +1,5 @@
 import { Expense } from '@/types';
-import { DollarSign, CreditCard, Tag, TrendingUp } from 'lucide-react';
+import { IndianRupee, CreditCard, Tag, TrendingUp } from 'lucide-react';
 
 interface SummaryCardsProps {
   expenses: Expense[];
@@ -30,14 +30,14 @@ export default function SummaryCards({ expenses }: SummaryCardsProps) {
       {/* Total Spent */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
         <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-          <DollarSign className="w-6 h-6" />
+          <IndianRupee className="w-6 h-6" />
         </div>
         <div>
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             Total Spent (Month)
           </p>
           <p className="text-2xl font-bold text-slate-800 mt-0.5">
-            ${totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ₹{totalSpent.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function SummaryCards({ expenses }: SummaryCardsProps) {
             Average / Expense
           </p>
           <p className="text-2xl font-bold text-slate-800 mt-0.5">
-            ${avgExpense.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ₹{avgExpense.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
       </div>
