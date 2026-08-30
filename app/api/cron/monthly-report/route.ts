@@ -8,9 +8,9 @@ export async function POST(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      console.warn('Unauthorized cron request attempt');
+      console.warn('SpendWise says: Unauthorized cron request attempt');
       return NextResponse.json(
-        { error: 'Unauthorized. Invalid cron authorization token.' },
+        { error: 'SpendWise says: Unauthorized. Invalid cron authorization token.' },
         { status: 401 }
       );
     }
@@ -20,30 +20,35 @@ export async function POST(request: NextRequest) {
 
     // 3. Compute Previous Month Date Range
     const now = new Date();
-    // First day of previous month
     const firstDayPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    // Last day of previous month
     const lastDayPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
     const startDateStr = firstDayPrevMonth.toISOString().split('T')[0];
     const endDateStr = lastDayPrevMonth.toISOString().split('T')[0];
 
-    console.log(`[CRON] Aggregating monthly expense reports from ${startDateStr} to ${endDateStr}...`);
+    console.log(`[CRON] SpendWise says: Aggregating monthly expense reports from ${startDateStr} to ${endDateStr}...`);
 
-    // 4. Fetch All Expenses for Previous Month
+    // 4. Fetch All Expenses (Including Recurring Expenses created on or before last day of previous month)
     const { data: expenses, error: expenseError } = await supabaseAdmin
       .from('expenses')
-      .select('user_id, amount, category, payment_method')
-      .gte('date', startDateStr)
+      .select('user_id, amount, category, payment_method, date, is_recurring')
       .lte('date', endDateStr);
 
     if (expenseError) {
-      console.error('[CRON] Database error fetching expenses:', expenseError);
+      console.error('[CRON] SpendWise says: Database error fetching expenses:', expenseError);
       return NextResponse.json(
-        { error: `Database error: ${expenseError.message}` },
+        { error: `SpendWise says: Database error: ${expenseError.message}` },
         { status: 500 }
       );
     }
+
+    // Filter expenses that apply to the previous month
+    const prevMonthExpenses = (expenses || []).filter((e) => {
+      const expDate = new Date(e.date);
+      const isExactMonth = expDate >= firstDayPrevMonth && expDate <= lastDayPrevMonth;
+      const isRecurringActive = e.is_recurring && expDate <= lastDayPrevMonth;
+      return isExactMonth || isRecurringActive;
+    });
 
     // 5. Fetch User Profiles / Email Information
     const { data: profiles, error: profileError } = await supabaseAdmin
@@ -51,14 +56,12 @@ export async function POST(request: NextRequest) {
       .select('id, full_name, email');
 
     if (profileError) {
-      console.error('[CRON] Database error fetching profiles:', profileError);
+      console.error('[CRON] SpendWise says: Database error fetching profiles:', profileError);
       return NextResponse.json(
-        { error: `Profile error: ${profileError.message}` },
+        { error: `SpendWise says: Profile error: ${profileError.message}` },
         { status: 500 }
       );
     }
-
-    const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
     // 6. Aggregate Expense Data Grouped By User
     const userAggregates = new Map<
@@ -70,7 +73,7 @@ export async function POST(request: NextRequest) {
       }
     >();
 
-    (expenses || []).forEach((item) => {
+    prevMonthExpenses.forEach((item) => {
       const existing = userAggregates.get(item.user_id) || {
         totalSpent: 0,
         count: 0,
@@ -115,33 +118,14 @@ export async function POST(request: NextRequest) {
 
       reportSummaries.push(summary);
 
-      // Simulated Resend / Nodemailer Email Dispatch Logic
-      /*
-      // Example Resend implementation:
-      await resend.emails.send({
-        from: 'Expense Tracker <reports@yourdomain.com>',
-        to: summary.email,
-        subject: `Monthly Expense Report - ${summary.period}`,
-        html: `
-          <h1>Monthly Expense Report</h1>
-          <p>Hi ${summary.fullName},</p>
-          <p>Here is your spending summary for <strong>${summary.period}</strong>:</p>
-          <ul>
-            <li><strong>Total Spent:</strong> $${summary.totalSpent}</li>
-            <li><strong>Total Transactions:</strong> ${summary.transactionCount}</li>
-            <li><strong>Top Category:</strong> ${summary.topCategory}</li>
-          </ul>
-        `
-      });
-      */
       console.log(
-        `[CRON EMAIL DISPATCH SIMULATION] Sent report email to ${summary.email} (${summary.fullName}) -> Total Spent: ₹${summary.totalSpent}, Transactions: ${summary.transactionCount}, Top Category: ${summary.topCategory}`
+        `[CRON EMAIL DISPATCH SIMULATION] SpendWise says: Sent report email to ${summary.email} (${summary.fullName}) -> Total Spent: ₹${summary.totalSpent}, Transactions: ${summary.transactionCount}, Top Category: ${summary.topCategory}`
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: `Monthly reports generated and dispatched for ${profiles.length} users.`,
+      message: `SpendWise says: Monthly reports generated and dispatched for ${profiles.length} users.`,
       period: {
         start: startDateStr,
         end: endDateStr,
@@ -150,9 +134,9 @@ export async function POST(request: NextRequest) {
       summaries: reportSummaries,
     });
   } catch (err: any) {
-    console.error('[CRON] Unexpected error handling monthly report:', err);
+    console.error('[CRON] SpendWise says: Unexpected error handling monthly report:', err);
     return NextResponse.json(
-      { error: err.message || 'Internal server error' },
+      { error: err.message || 'SpendWise says: Internal server error' },
       { status: 500 }
     );
   }

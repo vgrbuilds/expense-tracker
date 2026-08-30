@@ -11,13 +11,13 @@ export async function updateProfile(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return { error: 'Unauthorized user session.' };
+    return { error: 'SpendWise says: Unauthorized user session.' };
   }
 
   const fullName = formData.get('fullName') as string;
 
   if (!fullName || fullName.trim() === '') {
-    return { error: 'Full name cannot be empty.' };
+    return { error: 'SpendWise says: Full name cannot be empty.' };
   }
 
   const { error } = await supabase.from('profiles').upsert({
@@ -28,9 +28,9 @@ export async function updateProfile(formData: FormData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: `SpendWise says: ${error.message}` };
   }
 
   revalidatePath('/dashboard');
-  return { success: true };
+  return { success: true, message: 'SpendWise says: Profile updated successfully!' };
 }

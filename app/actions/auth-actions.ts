@@ -9,7 +9,7 @@ export async function login(formData: FormData) {
   const password = formData.get('password') as string;
 
   if (!email || !password) {
-    return { error: 'Email and password are required.' };
+    return { error: 'SpendWise says: Email and password are required.' };
   }
 
   const supabase = createClient();
@@ -19,7 +19,7 @@ export async function login(formData: FormData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: `SpendWise says: ${error.message}` };
   }
 
   revalidatePath('/', 'layout');
@@ -32,11 +32,11 @@ export async function signup(formData: FormData) {
   const fullName = formData.get('fullName') as string;
 
   if (!email || !password) {
-    return { error: 'Email and password are required.' };
+    return { error: 'SpendWise says: Email and password are required.' };
   }
 
   if (password.length < 6) {
-    return { error: 'Password must be at least 6 characters long.' };
+    return { error: 'SpendWise says: Password must be at least 6 characters long.' };
   }
 
   const supabase = createClient();
@@ -51,7 +51,7 @@ export async function signup(formData: FormData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: `SpendWise says: ${error.message}` };
   }
 
   revalidatePath('/', 'layout');

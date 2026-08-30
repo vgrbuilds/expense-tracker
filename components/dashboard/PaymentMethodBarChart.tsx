@@ -17,22 +17,19 @@ interface PaymentMethodBarChartProps {
 }
 
 const METHOD_COLORS: Record<string, string> = {
-  Cash: '#10b981', // Emerald 500
-  'Credit Card': '#0284c7', // Sky 600
-  UPI: '#8b5cf6', // Violet 500
+  Online: '#0284c7', // Sky 600
+  Offline: '#10b981', // Emerald 500
 };
 
 export default function PaymentMethodBarChart({ expenses }: PaymentMethodBarChartProps) {
   const methodTotals: Record<string, number> = {
-    Cash: 0,
-    'Credit Card': 0,
-    UPI: 0,
+    Online: 0,
+    Offline: 0,
   };
 
   expenses.forEach((e) => {
-    if (methodTotals[e.payment_method] !== undefined) {
-      methodTotals[e.payment_method] += Number(e.amount);
-    }
+    const method = e.payment_method || 'Online';
+    methodTotals[method] = (methodTotals[method] || 0) + Number(e.amount);
   });
 
   const data = Object.entries(methodTotals).map(([method, total]) => ({
@@ -80,7 +77,7 @@ export default function PaymentMethodBarChart({ expenses }: PaymentMethodBarChar
                 fontSize: '12px',
               }}
             />
-            <Bar dataKey="amount" radius={[8, 8, 0, 0]} barSize={40}>
+            <Bar dataKey="amount" radius={[8, 8, 0, 0]} barSize={50}>
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}

@@ -10,7 +10,7 @@ export type ExpenseCategory =
   | 'Others'
   | string;
 
-export type PaymentMethod = 'Cash' | 'Credit Card' | 'UPI';
+export type PaymentMethod = 'Online' | 'Offline';
 
 export interface Expense {
   id: string;
@@ -20,6 +20,8 @@ export interface Expense {
   date: string;
   category: string;
   payment_method: PaymentMethod;
+  spent_for: string;
+  is_recurring: boolean;
   created_at: string;
 }
 
