@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import DashboardClient from '@/components/dashboard/DashboardClient';
+import { getCustomOptions } from '@/app/actions/custom-option-actions';
 import { Expense } from '@/types';
 
 export default async function DashboardPage() {
@@ -28,5 +29,15 @@ export default async function DashboardPage() {
 
   const expenses: Expense[] = rawExpenses || [];
 
-  return <DashboardClient userName={userName} allExpenses={expenses} />;
+  // Fetch custom user categories and vendors
+  const { categories, vendors } = await getCustomOptions();
+
+  return (
+    <DashboardClient
+      userName={userName}
+      allExpenses={expenses}
+      userCustomCategories={categories}
+      userCustomVendors={vendors}
+    />
+  );
 }

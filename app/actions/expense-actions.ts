@@ -4,6 +4,51 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { PaymentMethod } from '@/types';
 
+const DEFAULT_CATEGORIES = [
+  'Grocery',
+  'Utilities',
+  'Rent',
+  'Dining Out',
+  'Transportation',
+  'Entertainment',
+  'Healthcare',
+  'Shopping',
+];
+
+const DEFAULT_VENDORS = [
+  'Amazon',
+  'Flipkart',
+  'Swiggy',
+  'Zomato',
+  'Uber',
+  'Ola',
+  'D-Mart',
+  'Supermarket',
+  'Electricity Board',
+];
+
+async function ensureCustomOption(userId: string, fieldName: 'category' | 'vendor', optionValue: string | null) {
+  if (!optionValue || !optionValue.trim()) return;
+  const val = optionValue.trim();
+
+  const isDefault =
+    fieldName === 'category'
+      ? DEFAULT_CATEGORIES.includes(val) || val === 'Others'
+      : DEFAULT_VENDORS.includes(val) || val === 'Others';
+
+  if (!isDefault) {
+    const supabase = createClient();
+    await supabase.from('custom_options').upsert(
+      {
+        user_id: userId,
+        field_name: fieldName,
+        option_value: val,
+      },
+      { onConflict: 'user_id,field_name,option_value' }
+    );
+  }
+}
+
 export async function addExpense(formData: FormData) {
   const supabase = createClient();
   const {
@@ -15,16 +60,13 @@ export async function addExpense(formData: FormData) {
     return { error: 'SpendWise says: Unauthorized user session.' };
   }
 
-  const title = formData.get('title') as string;
+  // Compulsory Fields
+  const category = (formData.get('category') as string)?.trim();
   const amountStr = formData.get('amount') as string;
   const date = formData.get('date') as string;
-  const category = formData.get('category') as string;
-  const paymentMethod = (formData.get('payment_method') as PaymentMethod) || 'Online';
-  const spentFor = (formData.get('spent_for') as string) || 'Self';
-  const isRecurring = formData.get('is_recurring') === 'true';
 
-  if (!title || !amountStr || !date || !category) {
-    return { error: 'SpendWise says: Title, amount, date, and category are required.' };
+  if (!category || !amountStr || !date) {
+    return { error: 'SpendWise says: Category, Amount, and Date are compulsory fields.' };
   }
 
   const amount = parseFloat(amountStr);
@@ -32,14 +74,27 @@ export async function addExpense(formData: FormData) {
     return { error: 'SpendWise says: Amount must be a positive number in Rupees.' };
   }
 
+  // Optional Fields
+  const description = (formData.get('description') as string)?.trim() || null;
+  const vendor = (formData.get('vendor') as string)?.trim() || null;
+  const spentFor = (formData.get('spent_for') as string)?.trim() || 'Self';
+  const paymentMethod = (formData.get('payment_method') as PaymentMethod) || 'Online';
+  const isRecurring = formData.get('is_recurring') === 'true';
+
+  // Save custom options if non-default category or vendor was used
+  await ensureCustomOption(user.id, 'category', category);
+  await ensureCustomOption(user.id, 'vendor', vendor);
+
   const { error } = await supabase.from('expenses').insert({
     user_id: user.id,
-    title: title.trim(),
+    category,
     amount,
     date,
-    category: category.trim(),
+    description,
+    title: description, // Backwards compatibility
+    vendor,
     payment_method: paymentMethod,
-    spent_for: spentFor.trim() || 'Self',
+    spent_for: spentFor,
     is_recurring: isRecurring,
   });
 
@@ -62,16 +117,13 @@ export async function updateExpense(expenseId: string, formData: FormData) {
     return { error: 'SpendWise says: Unauthorized user session.' };
   }
 
-  const title = formData.get('title') as string;
+  // Compulsory Fields
+  const category = (formData.get('category') as string)?.trim();
   const amountStr = formData.get('amount') as string;
   const date = formData.get('date') as string;
-  const category = formData.get('category') as string;
-  const paymentMethod = (formData.get('payment_method') as PaymentMethod) || 'Online';
-  const spentFor = (formData.get('spent_for') as string) || 'Self';
-  const isRecurring = formData.get('is_recurring') === 'true';
 
-  if (!title || !amountStr || !date || !category) {
-    return { error: 'SpendWise says: Title, amount, date, and category are required.' };
+  if (!category || !amountStr || !date) {
+    return { error: 'SpendWise says: Category, Amount, and Date are compulsory fields.' };
   }
 
   const amount = parseFloat(amountStr);
@@ -79,15 +131,28 @@ export async function updateExpense(expenseId: string, formData: FormData) {
     return { error: 'SpendWise says: Amount must be a positive number in Rupees.' };
   }
 
+  // Optional Fields
+  const description = (formData.get('description') as string)?.trim() || null;
+  const vendor = (formData.get('vendor') as string)?.trim() || null;
+  const spentFor = (formData.get('spent_for') as string)?.trim() || 'Self';
+  const paymentMethod = (formData.get('payment_method') as PaymentMethod) || 'Online';
+  const isRecurring = formData.get('is_recurring') === 'true';
+
+  // Save custom options if non-default category or vendor was used
+  await ensureCustomOption(user.id, 'category', category);
+  await ensureCustomOption(user.id, 'vendor', vendor);
+
   const { error } = await supabase
     .from('expenses')
     .update({
-      title: title.trim(),
+      category,
       amount,
       date,
-      category: category.trim(),
+      description,
+      title: description,
+      vendor,
       payment_method: paymentMethod,
-      spent_for: spentFor.trim() || 'Self',
+      spent_for: spentFor,
       is_recurring: isRecurring,
     })
     .eq('id', expenseId)

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Expense } from '@/types';
 import { deleteExpense } from '@/app/actions/expense-actions';
-import { Trash2, Edit3, Calendar, CreditCard, Tag, User, Repeat, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Trash2, Edit3, Calendar, CreditCard, Tag, User, Repeat, AlertCircle, CheckCircle2, Store } from 'lucide-react';
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -70,49 +70,28 @@ export default function ExpenseList({ expenses, onEditExpense }: ExpenseListProp
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
             <tr>
-              <th className="px-5 py-3.5">Title</th>
               <th className="px-5 py-3.5">Category</th>
-              <th className="px-5 py-3.5">Spent For</th>
-              <th className="px-5 py-3.5">Payment Method</th>
-              <th className="px-5 py-3.5">Type</th>
+              <th className="px-5 py-3.5 text-right">Amount</th>
               <th className="px-5 py-3.5">Date</th>
-              <th className="px-5 py-3.5 text-right">Amount (Rupees)</th>
+              <th className="px-5 py-3.5">Description</th>
+              <th className="px-5 py-3.5">Vendor</th>
+              <th className="px-5 py-3.5">Spent For</th>
+              <th className="px-5 py-3.5">Payment</th>
+              <th className="px-5 py-3.5">Type</th>
               <th className="px-5 py-3.5 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">
             {expenses.map((expense) => (
               <tr key={expense.id} className="hover:bg-slate-50/80 transition">
-                <td className="px-5 py-4 font-semibold text-slate-900">{expense.title}</td>
-                <td className="px-5 py-4">
+                <td className="px-5 py-4 font-semibold text-slate-900">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 text-xs font-semibold">
                     <Tag className="w-3.5 h-3.5" />
                     {expense.category}
                   </span>
                 </td>
-                <td className="px-5 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
-                    <User className="w-3.5 h-3.5 text-slate-400" />
-                    {expense.spent_for || 'Self'}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
-                    <CreditCard className="w-3.5 h-3.5" />
-                    {expense.payment_method || 'Online'}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  {expense.is_recurring ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold">
-                      <Repeat className="w-3.5 h-3.5" />
-                      Recurring
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
-                      One-time
-                    </span>
-                  )}
+                <td className="px-5 py-4 text-right font-bold text-slate-900">
+                  ₹{Number(expense.amount).toFixed(2)}
                 </td>
                 <td className="px-5 py-4 text-slate-500">
                   <span className="inline-flex items-center gap-1.5 text-xs">
@@ -120,8 +99,42 @@ export default function ExpenseList({ expenses, onEditExpense }: ExpenseListProp
                     {expense.date}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-right font-bold text-slate-900">
-                  ₹{Number(expense.amount).toFixed(2)}
+                <td className="px-5 py-4 text-slate-800 max-w-[200px] truncate">
+                  {expense.description || expense.title || <span className="text-slate-300 text-xs">—</span>}
+                </td>
+                <td className="px-5 py-4 text-slate-700">
+                  {expense.vendor ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-700">
+                      <Store className="w-3.5 h-3.5 text-slate-400" />
+                      {expense.vendor}
+                    </span>
+                  ) : (
+                    <span className="text-slate-300 text-xs">—</span>
+                  )}
+                </td>
+                <td className="px-5 py-4">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
+                    <User className="w-3 h-3 text-slate-400" />
+                    {expense.spent_for || 'Self'}
+                  </span>
+                </td>
+                <td className="px-5 py-4">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
+                    <CreditCard className="w-3 h-3" />
+                    {expense.payment_method || 'Online'}
+                  </span>
+                </td>
+                <td className="px-5 py-4">
+                  {expense.is_recurring ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                      <Repeat className="w-3 h-3" />
+                      Recurring
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
+                      One-time
+                    </span>
+                  )}
                 </td>
                 <td className="px-5 py-4 text-center">
                   <div className="flex items-center justify-center gap-1">

@@ -12,9 +12,16 @@ import { Sparkles } from 'lucide-react';
 interface DashboardClientProps {
   userName: string;
   allExpenses: Expense[];
+  userCustomCategories: string[];
+  userCustomVendors: string[];
 }
 
-export default function DashboardClient({ userName, allExpenses }: DashboardClientProps) {
+export default function DashboardClient({
+  userName,
+  allExpenses,
+  userCustomCategories,
+  userCustomVendors,
+}: DashboardClientProps) {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const now = new Date();
@@ -22,9 +29,7 @@ export default function DashboardClient({ userName, allExpenses }: DashboardClie
   const currentMonth = now.getMonth(); // 0-indexed
 
   // Recurring Business Logic:
-  // An expense is active in the current month if:
-  // 1) It was created in the current month (matching year & month), OR
-  // 2) It is marked as recurring (is_recurring === true) and its start date is <= current month.
+  // Expense is active in current month if created in current month OR (is_recurring AND created <= current month)
   const currentMonthExpenses = allExpenses.filter((e) => {
     const expenseDate = new Date(e.date);
     const expYear = expenseDate.getFullYear();
@@ -71,6 +76,8 @@ export default function DashboardClient({ userName, allExpenses }: DashboardClie
       <ExpenseForm
         editingExpense={editingExpense}
         onCancelEdit={handleCancelEdit}
+        userCustomCategories={userCustomCategories}
+        userCustomVendors={userCustomVendors}
       />
 
       {/* Analytics Visualizations */}
