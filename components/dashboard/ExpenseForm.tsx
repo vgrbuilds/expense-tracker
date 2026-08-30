@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { addExpense, updateExpense } from '@/app/actions/expense-actions';
 import { PaymentMethod, Expense } from '@/types';
-import { PlusCircle, Edit3, AlertCircle, CheckCircle2, X, Plus } from 'lucide-react';
+import { PlusCircle, Edit3, AlertCircle, CheckCircle2, X, Plus, ChevronDown, Sparkles, Tag, Store, RotateCcw } from 'lucide-react';
 
 const DEFAULT_CATEGORIES = [
   'Grocery',
@@ -261,41 +261,62 @@ export default function ExpenseForm({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* 1. Category */}
+            {/* 1. Category Dropdown / Custom Input */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                <Tag className="w-3.5 h-3.5 text-sky-600" />
                 Category <span className="text-red-500">*</span>
               </label>
-              <select
-                value={isCustomCategoryMode ? '__ADD_CUSTOM_CATEGORY__' : selectedCategory}
-                onChange={(e) => handleCategorySelectChange(e.target.value)}
-                required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-white"
-              >
-                <optgroup label="Saved & Default Categories">
-                  {categoryOptions.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Custom Option">
-                  <option value="__ADD_CUSTOM_CATEGORY__">
-                    + Add New Custom Category...
-                  </option>
-                </optgroup>
-              </select>
 
-              {isCustomCategoryMode && (
-                <div className="mt-2 animate-fadeIn">
-                  <input
-                    type="text"
-                    value={customCategoryInput}
-                    onChange={(e) => setCustomCategoryInput(e.target.value)}
+              {!isCustomCategoryMode ? (
+                <div className="relative">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => handleCategorySelectChange(e.target.value)}
                     required
-                    placeholder="Type custom category (e.g. Subscriptions, Gifts)..."
-                    className="w-full px-3 py-2 rounded-xl border border-sky-300 focus:ring-2 focus:ring-sky-500 text-xs outline-none text-slate-800 bg-white"
-                  />
+                    className="w-full appearance-none px-3.5 py-2.5 pr-9 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-white font-medium shadow-xs transition hover:border-slate-400 cursor-pointer"
+                  >
+                    <optgroup label="✨ Your Saved & Standard Categories">
+                      {categoryOptions.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="➕ Create Custom">
+                      <option value="__ADD_CUSTOM_CATEGORY__">
+                        + Create New Custom Category...
+                      </option>
+                    </optgroup>
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+                </div>
+              ) : (
+                <div className="space-y-1.5 animate-fadeIn">
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={customCategoryInput}
+                      onChange={(e) => setCustomCategoryInput(e.target.value)}
+                      required
+                      placeholder="Type custom category name..."
+                      className="w-full px-3.5 py-2 rounded-xl border border-sky-400 focus:ring-2 focus:ring-sky-500/20 text-xs outline-none text-slate-800 bg-sky-50/30 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomCategoryMode(false);
+                        setSelectedCategory('Grocery');
+                      }}
+                      title="Back to category list"
+                      className="absolute right-2 px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition"
+                    >
+                      <RotateCcw className="w-3 h-3" /> List
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-sky-600 font-medium">
+                    This custom category will be saved to your dropdown list automatically.
+                  </p>
                 </div>
               )}
             </div>
@@ -313,7 +334,7 @@ export default function ExpenseForm({
                 min="0.01"
                 required
                 placeholder="0.00"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-white font-medium shadow-xs"
               />
             </div>
 
@@ -327,7 +348,7 @@ export default function ExpenseForm({
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-white font-medium shadow-xs"
               />
             </div>
           </div>
@@ -353,7 +374,7 @@ export default function ExpenseForm({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Monthly wifi bill, Weekly grocery restock"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50"
               />
             </div>
 
@@ -367,44 +388,65 @@ export default function ExpenseForm({
                 value={spentFor}
                 onChange={(e) => setSpentFor(e.target.value)}
                 placeholder="e.g. Self, Family, Home, Friend"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50"
               />
             </div>
 
-            {/* Vendor Name Dropdown */}
+            {/* Vendor Name Dropdown / Custom Input */}
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">
+              <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                <Store className="w-3.5 h-3.5 text-slate-500" />
                 Vendor Name
               </label>
-              <select
-                value={isCustomVendorMode ? '__ADD_CUSTOM_VENDOR__' : selectedVendor}
-                onChange={(e) => handleVendorSelectChange(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50"
-              >
-                <option value="">-- None / Select Vendor --</option>
-                <optgroup label="Saved Vendors">
-                  {vendorOptions.map((v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Custom Option">
-                  <option value="__ADD_CUSTOM_VENDOR__">
-                    + Add New Custom Vendor...
-                  </option>
-                </optgroup>
-              </select>
 
-              {isCustomVendorMode && (
-                <div className="mt-2 animate-fadeIn">
-                  <input
-                    type="text"
-                    value={customVendorInput}
-                    onChange={(e) => setCustomVendorInput(e.target.value)}
-                    placeholder="Type custom vendor (e.g. Local Dairy, Netflix)..."
-                    className="w-full px-3 py-2 rounded-xl border border-sky-300 focus:ring-2 focus:ring-sky-500 text-xs outline-none text-slate-800 bg-white"
-                  />
+              {!isCustomVendorMode ? (
+                <div className="relative">
+                  <select
+                    value={selectedVendor}
+                    onChange={(e) => handleVendorSelectChange(e.target.value)}
+                    className="w-full appearance-none px-3.5 py-2.5 pr-9 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50 font-medium shadow-xs transition hover:border-slate-400 cursor-pointer"
+                  >
+                    <option value="">-- None / Select Vendor --</option>
+                    <optgroup label="🛍️ Saved Vendors">
+                      {vendorOptions.map((v) => (
+                        <option key={v} value={v}>
+                          {v}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="➕ Create Custom">
+                      <option value="__ADD_CUSTOM_VENDOR__">
+                        + Create New Custom Vendor...
+                      </option>
+                    </optgroup>
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+                </div>
+              ) : (
+                <div className="space-y-1.5 animate-fadeIn">
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={customVendorInput}
+                      onChange={(e) => setCustomVendorInput(e.target.value)}
+                      placeholder="Type custom vendor (e.g. Netflix, Dairy)..."
+                      className="w-full px-3.5 py-2 rounded-xl border border-sky-400 focus:ring-2 focus:ring-sky-500/20 text-xs outline-none text-slate-800 bg-sky-50/30 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomVendorMode(false);
+                        setSelectedVendor('');
+                      }}
+                      title="Back to vendor list"
+                      className="absolute right-2 px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition"
+                    >
+                      <RotateCcw className="w-3 h-3" /> List
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-sky-600 font-medium">
+                    This custom vendor will be saved to your dropdown list automatically.
+                  </p>
                 </div>
               )}
             </div>
@@ -414,17 +456,20 @@ export default function ExpenseForm({
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 Payment Method
               </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50"
-              >
-                {PAYMENT_METHODS.map((pm) => (
-                  <option key={pm} value={pm}>
-                    {pm}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                  className="w-full appearance-none px-3.5 py-2.5 pr-9 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50 font-medium shadow-xs transition hover:border-slate-400 cursor-pointer"
+                >
+                  {PAYMENT_METHODS.map((pm) => (
+                    <option key={pm} value={pm}>
+                      {pm}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+              </div>
             </div>
 
             {/* Frequency (Recurring / One-time) */}

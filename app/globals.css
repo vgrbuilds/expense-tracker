@@ -4,6 +4,9 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased min-h-screen;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-slate-50 text-slate-900 min-h-screen;
   }
 }

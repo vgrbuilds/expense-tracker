@@ -61,9 +61,9 @@ export default function DashboardClient({
             <Sparkles className="w-3.5 h-3.5" /> Monthly Finance Overview
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">
-            SpendWise says: Hello, {userName}! 👋
+            Hello, {userName}
           </h1>
-          <p className="text-sky-100 text-sm mt-1 max-w-xl">
+          <p className="text-sky-100 text-sm mt-1.5 max-w-xl">
             Here is your spending report for {now.toLocaleString('default', { month: 'long', year: 'numeric' })}. Recurring expenses automatically roll over each month.
           </p>
         </div>
