@@ -1,6 +1,7 @@
 'use client';
 
 import { Expense } from '@/types';
+import { formatINR } from '@/lib/utils';
 import {
   BarChart,
   Bar,
@@ -43,7 +44,7 @@ export default function PaymentMethodBarChart({ expenses }: PaymentMethodBarChar
     return (
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col items-center justify-center min-h-[320px]">
         <h3 className="text-base font-bold text-slate-800 mb-2">Spending by Payment Method</h3>
-        <p className="text-sm text-slate-400">No expenses recorded for this period.</p>
+        <p className="text-sm text-slate-400">No expense records found for this view.</p>
       </div>
     );
   }
@@ -68,13 +69,14 @@ export default function PaymentMethodBarChart({ expenses }: PaymentMethodBarChar
               tickFormatter={(value) => `₹${value}`}
             />
             <Tooltip
-              formatter={(value: number) => [`₹${value.toFixed(2)}`, 'Spent']}
+              formatter={(value: number) => [formatINR(value), 'Spent']}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 borderColor: '#e2e8f0',
                 borderRadius: '0.75rem',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                 fontSize: '12px',
+                fontWeight: 600,
               }}
             />
             <Bar dataKey="amount" radius={[8, 8, 0, 0]} barSize={50}>

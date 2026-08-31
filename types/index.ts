@@ -30,7 +30,7 @@ export interface Expense {
 export interface CustomOption {
   id: string;
   user_id: string;
-  field_name: 'category' | 'vendor';
+  field_name: string;
   option_value: string;
   created_at: string;
 }

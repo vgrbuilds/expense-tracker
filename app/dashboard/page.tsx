@@ -30,7 +30,7 @@ export default async function DashboardPage() {
   const expenses: Expense[] = rawExpenses || [];
 
   // Fetch custom user categories and vendors
-  const { categories, vendors } = await getCustomOptions();
+  const { categories, vendors, hiddenCategories, hiddenVendors } = await getCustomOptions();
 
   return (
     <DashboardClient
@@ -38,6 +38,8 @@ export default async function DashboardPage() {
       allExpenses={expenses}
       userCustomCategories={categories}
       userCustomVendors={vendors}
+      hiddenCategories={hiddenCategories}
+      hiddenVendors={hiddenVendors}
     />
   );
 }

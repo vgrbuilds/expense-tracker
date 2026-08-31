@@ -12,7 +12,7 @@ export async function getCustomOptions() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return { categories: [], vendors: [] };
+    return { categories: [], vendors: [], hiddenCategories: [], hiddenVendors: [] };
   }
 
   const { data, error } = await supabase
@@ -22,7 +22,7 @@ export async function getCustomOptions() {
     .order('option_value', { ascending: true });
 
   if (error || !data) {
-    return { categories: [], vendors: [] };
+    return { categories: [], vendors: [], hiddenCategories: [], hiddenVendors: [] };
   }
 
   const categories = data
@@ -33,7 +33,15 @@ export async function getCustomOptions() {
     .filter((item: CustomOption) => item.field_name === 'vendor')
     .map((item: CustomOption) => item.option_value);
 
-  return { categories, vendors };
+  const hiddenCategories = data
+    .filter((item: CustomOption) => item.field_name === 'hidden_category')
+    .map((item: CustomOption) => item.option_value);
+
+  const hiddenVendors = data
+    .filter((item: CustomOption) => item.field_name === 'hidden_vendor')
+    .map((item: CustomOption) => item.option_value);
+
+  return { categories, vendors, hiddenCategories, hiddenVendors };
 }
 
 export async function saveCustomOption(fieldName: 'category' | 'vendor', optionValue: string) {
@@ -43,12 +51,12 @@ export async function saveCustomOption(fieldName: 'category' | 'vendor', optionV
     error: userError,
   } = await supabase.auth.getUser();
 
-  if (userError || !user) return;
+  if (userError || !user) return { error: 'SpendWise says: Unauthorized.' };
 
   const trimmed = optionValue.trim();
-  if (!trimmed) return;
+  if (!trimmed) return { error: 'SpendWise says: Option name cannot be empty.' };
 
-  await supabase.from('custom_options').upsert(
+  const { error } = await supabase.from('custom_options').upsert(
     {
       user_id: user.id,
       field_name: fieldName,
@@ -57,5 +65,54 @@ export async function saveCustomOption(fieldName: 'category' | 'vendor', optionV
     { onConflict: 'user_id,field_name,option_value' }
   );
 
+  if (error) return { error: `SpendWise says: ${error.message}` };
+
   revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function hideDefaultOption(fieldName: 'category' | 'vendor', optionValue: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) return { error: 'SpendWise says: Unauthorized.' };
+
+  const { error } = await supabase.from('custom_options').upsert(
+    {
+      user_id: user.id,
+      field_name: `hidden_${fieldName}`,
+      option_value: optionValue,
+    },
+    { onConflict: 'user_id,field_name,option_value' }
+  );
+
+  if (error) return { error: `SpendWise says: ${error.message}` };
+
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
+export async function deleteCustomOption(fieldName: 'category' | 'vendor' | 'hidden_category' | 'hidden_vendor', optionValue: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) return { error: 'SpendWise says: Unauthorized.' };
+
+  const { error } = await supabase
+    .from('custom_options')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('field_name', fieldName)
+    .eq('option_value', optionValue);
+
+  if (error) return { error: `SpendWise says: ${error.message}` };
+
+  revalidatePath('/dashboard');
+  return { success: true };
 }

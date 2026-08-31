@@ -1,6 +1,7 @@
 'use client';
 
 import { Expense } from '@/types';
+import { formatINR } from '@/lib/utils';
 import {
   PieChart,
   Pie,
@@ -15,15 +16,15 @@ interface CategoryPieChartProps {
 }
 
 const COLORS = [
-  '#0284c7', // Grocery - Sky 600
-  '#f59e0b', // Utilities - Amber 500
-  '#8b5cf6', // Rent - Violet 500
-  '#ef4444', // Dining Out - Red 500
-  '#10b981', // Transportation - Emerald 500
-  '#ec4899', // Entertainment - Pink 500
-  '#14b8a6', // Healthcare - Teal 500
-  '#6366f1', // Shopping - Indigo 500
-  '#64748b', // Others - Slate 500
+  '#0284c7', // Sky 600
+  '#f59e0b', // Amber 500
+  '#8b5cf6', // Violet 500
+  '#ef4444', // Red 500
+  '#10b981', // Emerald 500
+  '#ec4899', // Pink 500
+  '#14b8a6', // Teal 500
+  '#6366f1', // Indigo 500
+  '#64748b', // Slate 500
 ];
 
 export default function CategoryPieChart({ expenses }: CategoryPieChartProps) {
@@ -41,7 +42,7 @@ export default function CategoryPieChart({ expenses }: CategoryPieChartProps) {
     return (
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col items-center justify-center min-h-[320px]">
         <h3 className="text-base font-bold text-slate-800 mb-2">Spending by Category</h3>
-        <p className="text-sm text-slate-400">No expenses recorded for this period.</p>
+        <p className="text-sm text-slate-400">No expense records found for this view.</p>
       </div>
     );
   }
@@ -66,13 +67,14 @@ export default function CategoryPieChart({ expenses }: CategoryPieChartProps) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [`₹${value.toFixed(2)}`, 'Amount']}
+              formatter={(value: number) => [formatINR(value), 'Amount']}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 borderColor: '#e2e8f0',
                 borderRadius: '0.75rem',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                 fontSize: '12px',
+                fontWeight: 600,
               }}
             />
             <Legend

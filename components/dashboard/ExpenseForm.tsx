@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { addExpense, updateExpense } from '@/app/actions/expense-actions';
 import { PaymentMethod, Expense } from '@/types';
-import { PlusCircle, Edit3, AlertCircle, CheckCircle2, X, Plus, ChevronDown, Sparkles, Tag, Store, RotateCcw } from 'lucide-react';
+import { PlusCircle, Edit3, AlertCircle, CheckCircle2, X, Plus, ChevronDown, Sparkles, Tag, Store, RotateCcw, Settings } from 'lucide-react';
 
 const DEFAULT_CATEGORIES = [
   'Grocery',
@@ -11,6 +11,7 @@ const DEFAULT_CATEGORIES = [
   'Rent',
   'Dining Out',
   'Transportation',
+  'Clothing',
   'Entertainment',
   'Healthcare',
   'Shopping',
@@ -35,6 +36,9 @@ interface ExpenseFormProps {
   onCancelEdit?: () => void;
   userCustomCategories?: string[];
   userCustomVendors?: string[];
+  hiddenCategories?: string[];
+  hiddenVendors?: string[];
+  onOpenManager?: () => void;
 }
 
 export default function ExpenseForm({
@@ -42,14 +46,27 @@ export default function ExpenseForm({
   onCancelEdit,
   userCustomCategories = [],
   userCustomVendors = [],
+  hiddenCategories = [],
+  hiddenVendors = [],
+  onOpenManager,
 }: ExpenseFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
-  // Combine default & user custom options (unique)
-  const categoryOptions = Array.from(new Set([...DEFAULT_CATEGORIES, ...userCustomCategories]));
-  const vendorOptions = Array.from(new Set([...DEFAULT_VENDORS, ...userCustomVendors]));
+  // Combine default & user custom options (excluding hidden items)
+  const categoryOptions = Array.from(
+    new Set([
+      ...DEFAULT_CATEGORIES.filter((c) => !hiddenCategories.includes(c)),
+      ...userCustomCategories,
+    ])
+  );
+  const vendorOptions = Array.from(
+    new Set([
+      ...DEFAULT_VENDORS.filter((v) => !hiddenVendors.includes(v)),
+      ...userCustomVendors,
+    ])
+  );
 
   // Compulsory Fields States
   const [selectedCategory, setSelectedCategory] = useState<string>('Grocery');
@@ -222,15 +239,28 @@ export default function ExpenseForm({
           )}
         </h2>
 
-        {editingExpense && onCancelEdit && (
-          <button
-            type="button"
-            onClick={onCancelEdit}
-            className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg transition"
-          >
-            <X className="w-4 h-4" /> Cancel Edit
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {onOpenManager && (
+            <button
+              type="button"
+              onClick={onOpenManager}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded-xl transition border border-sky-200"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              Manage Categories & Vendors
+            </button>
+          )}
+
+          {editingExpense && onCancelEdit && (
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition"
+            >
+              <X className="w-4 h-4" /> Cancel Edit
+            </button>
+          )}
+        </div>
       </div>
 
       {notification && (
@@ -451,10 +481,10 @@ export default function ExpenseForm({
               )}
             </div>
 
-            {/* Payment Method (Online / Offline) */}
+            {/* Shopping mode (Online / Offline) */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
-                Payment Method
+                Shopping mode
               </label>
               <div className="relative">
                 <select
