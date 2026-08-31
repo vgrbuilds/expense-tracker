@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { addExpense, updateExpense } from '@/app/actions/expense-actions';
 import { PaymentMethod, Expense } from '@/types';
-import { PlusCircle, Edit3, AlertCircle, CheckCircle2, X, Plus, ChevronDown, Sparkles, Tag, Store, RotateCcw, Settings } from 'lucide-react';
+import { PlusCircle, Edit3, AlertCircle, CheckCircle2, X, ChevronDown, Tag, Store, User, RotateCcw } from 'lucide-react';
 
 const DEFAULT_CATEGORIES = [
   'Grocery',
@@ -11,23 +11,12 @@ const DEFAULT_CATEGORIES = [
   'Rent',
   'Dining Out',
   'Transportation',
-  'Clothing',
   'Entertainment',
   'Healthcare',
   'Shopping',
 ];
 
-const DEFAULT_VENDORS = [
-  'Amazon',
-  'Flipkart',
-  'Swiggy',
-  'Zomato',
-  'Uber',
-  'Ola',
-  'D-Mart',
-  'Supermarket',
-  'Electricity Board',
-];
+const DEFAULT_SPENT_FOR = ['Self', 'Family', 'Home', 'Friend', 'Office'];
 
 const PAYMENT_METHODS: PaymentMethod[] = ['Online', 'Offline'];
 
@@ -36,9 +25,7 @@ interface ExpenseFormProps {
   onCancelEdit?: () => void;
   userCustomCategories?: string[];
   userCustomVendors?: string[];
-  hiddenCategories?: string[];
-  hiddenVendors?: string[];
-  onOpenManager?: () => void;
+  userCustomSpentForOptions?: string[];
 }
 
 export default function ExpenseForm({
@@ -46,27 +33,20 @@ export default function ExpenseForm({
   onCancelEdit,
   userCustomCategories = [],
   userCustomVendors = [],
-  hiddenCategories = [],
-  hiddenVendors = [],
-  onOpenManager,
+  userCustomSpentForOptions = [],
 }: ExpenseFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
-  // Combine default & user custom options (excluding hidden items)
-  const categoryOptions = Array.from(
-    new Set([
-      ...DEFAULT_CATEGORIES.filter((c) => !hiddenCategories.includes(c)),
-      ...userCustomCategories,
-    ])
-  );
-  const vendorOptions = Array.from(
-    new Set([
-      ...DEFAULT_VENDORS.filter((v) => !hiddenVendors.includes(v)),
-      ...userCustomVendors,
-    ])
-  );
+  // Categories list
+  const categoryOptions = Array.from(new Set([...DEFAULT_CATEGORIES, ...userCustomCategories]));
+
+  // Vendors list (ONLY user's custom vendors, clean & un-crowded!)
+  const vendorOptions = Array.from(new Set(userCustomVendors));
+
+  // Spent For list (ONLY user's custom spent_for options + defaults)
+  const spentForOptions = Array.from(new Set([...DEFAULT_SPENT_FOR, ...userCustomSpentForOptions]));
 
   // Compulsory Fields States
   const [selectedCategory, setSelectedCategory] = useState<string>('Grocery');
@@ -78,11 +58,14 @@ export default function ExpenseForm({
 
   // Optional Fields States
   const [description, setDescription] = useState('');
-  const [spentFor, setSpentFor] = useState<string>('Self');
 
   const [selectedVendor, setSelectedVendor] = useState<string>('');
   const [isCustomVendorMode, setIsCustomVendorMode] = useState<boolean>(false);
   const [customVendorInput, setCustomVendorInput] = useState<string>('');
+
+  const [selectedSpentFor, setSelectedSpentFor] = useState<string>('Self');
+  const [isCustomSpentForMode, setIsCustomSpentForMode] = useState<boolean>(false);
+  const [customSpentForInput, setCustomSpentForInput] = useState<string>('');
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Online');
   const [isRecurring, setIsRecurring] = useState<boolean>(true); // Default is recurring
@@ -104,7 +87,6 @@ export default function ExpenseForm({
       setAmount(editingExpense.amount.toString());
       setDate(editingExpense.date);
       setDescription(editingExpense.description || editingExpense.title || '');
-      setSpentFor(editingExpense.spent_for || 'Self');
 
       // Vendor
       const currentVendor = editingExpense.vendor || '';
@@ -122,6 +104,18 @@ export default function ExpenseForm({
         setCustomVendorInput(currentVendor);
       }
 
+      // Spent For
+      const currentSpentFor = editingExpense.spent_for || 'Self';
+      if (spentForOptions.includes(currentSpentFor)) {
+        setSelectedSpentFor(currentSpentFor);
+        setIsCustomSpentForMode(false);
+        setCustomSpentForInput('');
+      } else {
+        setSelectedSpentFor('__ADD_CUSTOM_SPENT_FOR__');
+        setIsCustomSpentForMode(true);
+        setCustomSpentForInput(currentSpentFor);
+      }
+
       setPaymentMethod(editingExpense.payment_method || 'Online');
       setIsRecurring(editingExpense.is_recurring ?? true);
       setNotification(null);
@@ -137,10 +131,15 @@ export default function ExpenseForm({
     setAmount('');
     setDate(new Date().toISOString().split('T')[0]);
     setDescription('');
-    setSpentFor('Self');
+
     setSelectedVendor('');
     setIsCustomVendorMode(false);
     setCustomVendorInput('');
+
+    setSelectedSpentFor('Self');
+    setIsCustomSpentForMode(false);
+    setCustomSpentForInput('');
+
     setPaymentMethod('Online');
     setIsRecurring(true);
   }
@@ -165,6 +164,16 @@ export default function ExpenseForm({
     }
   }
 
+  function handleSpentForSelectChange(val: string) {
+    if (val === '__ADD_CUSTOM_SPENT_FOR__') {
+      setSelectedSpentFor('__ADD_CUSTOM_SPENT_FOR__');
+      setIsCustomSpentForMode(true);
+    } else {
+      setSelectedSpentFor(val);
+      setIsCustomSpentForMode(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -182,12 +191,17 @@ export default function ExpenseForm({
       ? customVendorInput.trim()
       : selectedVendor;
 
+    // Final Spent For
+    const finalSpentFor = isCustomSpentForMode
+      ? customSpentForInput.trim()
+      : selectedSpentFor;
+
     formData.append('category', finalCategory);
     formData.append('amount', amount);
     formData.append('date', date);
     formData.append('description', description);
-    formData.append('spent_for', spentFor);
     formData.append('vendor', finalVendor);
+    formData.append('spent_for', finalSpentFor || 'Self');
     formData.append('payment_method', paymentMethod);
     formData.append('is_recurring', isRecurring ? 'true' : 'false');
 
@@ -239,28 +253,15 @@ export default function ExpenseForm({
           )}
         </h2>
 
-        <div className="flex items-center gap-2">
-          {onOpenManager && (
-            <button
-              type="button"
-              onClick={onOpenManager}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded-xl transition border border-sky-200"
-            >
-              <Settings className="w-3.5 h-3.5" />
-              Manage Categories & Vendors
-            </button>
-          )}
-
-          {editingExpense && onCancelEdit && (
-            <button
-              type="button"
-              onClick={onCancelEdit}
-              className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition"
-            >
-              <X className="w-4 h-4" /> Cancel Edit
-            </button>
-          )}
-        </div>
+        {editingExpense && onCancelEdit && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg transition"
+          >
+            <X className="w-4 h-4" /> Cancel Edit
+          </button>
+        )}
       </div>
 
       {notification && (
@@ -291,7 +292,7 @@ export default function ExpenseForm({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* 1. Category Dropdown / Custom Input */}
+            {/* 1. Category */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
                 <Tag className="w-3.5 h-3.5 text-sky-600" />
@@ -306,16 +307,16 @@ export default function ExpenseForm({
                     required
                     className="w-full appearance-none px-3.5 py-2.5 pr-9 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-white font-medium shadow-xs transition hover:border-slate-400 cursor-pointer"
                   >
-                    <optgroup label="✨ Your Saved & Standard Categories">
+                    <optgroup label="Categories">
                       {categoryOptions.map((cat) => (
                         <option key={cat} value={cat}>
                           {cat}
                         </option>
                       ))}
                     </optgroup>
-                    <optgroup label="➕ Create Custom">
+                    <optgroup label="Custom Option">
                       <option value="__ADD_CUSTOM_CATEGORY__">
-                        + Create New Custom Category...
+                        + Add New Category...
                       </option>
                     </optgroup>
                   </select>
@@ -329,7 +330,7 @@ export default function ExpenseForm({
                       value={customCategoryInput}
                       onChange={(e) => setCustomCategoryInput(e.target.value)}
                       required
-                      placeholder="Type custom category name..."
+                      placeholder="Type category name..."
                       className="w-full px-3.5 py-2 rounded-xl border border-sky-400 focus:ring-2 focus:ring-sky-500/20 text-xs outline-none text-slate-800 bg-sky-50/30 font-medium"
                     />
                     <button
@@ -338,15 +339,12 @@ export default function ExpenseForm({
                         setIsCustomCategoryMode(false);
                         setSelectedCategory('Grocery');
                       }}
-                      title="Back to category list"
+                      title="Back to dropdown list"
                       className="absolute right-2 px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition"
                     >
                       <RotateCcw className="w-3 h-3" /> List
                     </button>
                   </div>
-                  <p className="text-[10px] text-sky-600 font-medium">
-                    This custom category will be saved to your dropdown list automatically.
-                  </p>
                 </div>
               )}
             </div>
@@ -408,21 +406,62 @@ export default function ExpenseForm({
               />
             </div>
 
-            {/* Spent For */}
+            {/* Spent For Dropdown (Clean, user-only options!) */}
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">
+              <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                <User className="w-3.5 h-3.5 text-slate-500" />
                 Spent For
               </label>
-              <input
-                type="text"
-                value={spentFor}
-                onChange={(e) => setSpentFor(e.target.value)}
-                placeholder="e.g. Self, Family, Home, Friend"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50"
-              />
+
+              {!isCustomSpentForMode ? (
+                <div className="relative">
+                  <select
+                    value={selectedSpentFor}
+                    onChange={(e) => handleSpentForSelectChange(e.target.value)}
+                    className="w-full appearance-none px-3.5 py-2.5 pr-9 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50 font-medium shadow-xs transition hover:border-slate-400 cursor-pointer"
+                  >
+                    <optgroup label="Saved Options">
+                      {spentForOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Custom Option">
+                      <option value="__ADD_CUSTOM_SPENT_FOR__">
+                        + Add New Spent For...
+                      </option>
+                    </optgroup>
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+                </div>
+              ) : (
+                <div className="space-y-1.5 animate-fadeIn">
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={customSpentForInput}
+                      onChange={(e) => setCustomSpentForInput(e.target.value)}
+                      placeholder="Type custom spent for (e.g. Office, Project)..."
+                      className="w-full px-3.5 py-2 rounded-xl border border-sky-400 focus:ring-2 focus:ring-sky-500/20 text-xs outline-none text-slate-800 bg-sky-50/30 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomSpentForMode(false);
+                        setSelectedSpentFor('Self');
+                      }}
+                      title="Back to list"
+                      className="absolute right-2 px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition"
+                    >
+                      <RotateCcw className="w-3 h-3" /> List
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Vendor Name Dropdown / Custom Input */}
+            {/* Vendor Name Dropdown (Clean, user-only vendors!) */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
                 <Store className="w-3.5 h-3.5 text-slate-500" />
@@ -437,16 +476,18 @@ export default function ExpenseForm({
                     className="w-full appearance-none px-3.5 py-2.5 pr-9 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sm outline-none text-slate-800 bg-slate-50/50 font-medium shadow-xs transition hover:border-slate-400 cursor-pointer"
                   >
                     <option value="">-- None / Select Vendor --</option>
-                    <optgroup label="🛍️ Saved Vendors">
-                      {vendorOptions.map((v) => (
-                        <option key={v} value={v}>
-                          {v}
-                        </option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="➕ Create Custom">
+                    {vendorOptions.length > 0 && (
+                      <optgroup label="Your Saved Vendors">
+                        {vendorOptions.map((v) => (
+                          <option key={v} value={v}>
+                            {v}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <optgroup label="Custom Option">
                       <option value="__ADD_CUSTOM_VENDOR__">
-                        + Create New Custom Vendor...
+                        + Add New Vendor...
                       </option>
                     </optgroup>
                   </select>
@@ -459,7 +500,7 @@ export default function ExpenseForm({
                       type="text"
                       value={customVendorInput}
                       onChange={(e) => setCustomVendorInput(e.target.value)}
-                      placeholder="Type custom vendor (e.g. Netflix, Dairy)..."
+                      placeholder="Type vendor name (e.g. Amazon, D-Mart)..."
                       className="w-full px-3.5 py-2 rounded-xl border border-sky-400 focus:ring-2 focus:ring-sky-500/20 text-xs outline-none text-slate-800 bg-sky-50/30 font-medium"
                     />
                     <button
@@ -474,17 +515,14 @@ export default function ExpenseForm({
                       <RotateCcw className="w-3 h-3" /> List
                     </button>
                   </div>
-                  <p className="text-[10px] text-sky-600 font-medium">
-                    This custom vendor will be saved to your dropdown list automatically.
-                  </p>
                 </div>
               )}
             </div>
 
-            {/* Shopping mode (Online / Offline) */}
+            {/* Payment Method (Online / Offline) */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
-                Shopping mode
+                Payment Method
               </label>
               <div className="relative">
                 <select

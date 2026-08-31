@@ -12,7 +12,7 @@ export async function getCustomOptions() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return { categories: [], vendors: [], hiddenCategories: [], hiddenVendors: [] };
+    return { categories: [], vendors: [], spentForOptions: [] };
   }
 
   const { data, error } = await supabase
@@ -22,7 +22,7 @@ export async function getCustomOptions() {
     .order('option_value', { ascending: true });
 
   if (error || !data) {
-    return { categories: [], vendors: [], hiddenCategories: [], hiddenVendors: [] };
+    return { categories: [], vendors: [], spentForOptions: [] };
   }
 
   const categories = data
@@ -33,18 +33,14 @@ export async function getCustomOptions() {
     .filter((item: CustomOption) => item.field_name === 'vendor')
     .map((item: CustomOption) => item.option_value);
 
-  const hiddenCategories = data
-    .filter((item: CustomOption) => item.field_name === 'hidden_category')
+  const spentForOptions = data
+    .filter((item: CustomOption) => item.field_name === 'spent_for')
     .map((item: CustomOption) => item.option_value);
 
-  const hiddenVendors = data
-    .filter((item: CustomOption) => item.field_name === 'hidden_vendor')
-    .map((item: CustomOption) => item.option_value);
-
-  return { categories, vendors, hiddenCategories, hiddenVendors };
+  return { categories, vendors, spentForOptions };
 }
 
-export async function saveCustomOption(fieldName: 'category' | 'vendor', optionValue: string) {
+export async function saveCustomOption(fieldName: 'category' | 'vendor' | 'spent_for' | string, optionValue: string) {
   const supabase = createClient();
   const {
     data: { user },
@@ -68,34 +64,12 @@ export async function saveCustomOption(fieldName: 'category' | 'vendor', optionV
   if (error) return { error: `SpendWise says: ${error.message}` };
 
   revalidatePath('/dashboard');
+  revalidatePath('/transactions');
+  revalidatePath('/profile');
   return { success: true };
 }
 
-export async function hideDefaultOption(fieldName: 'category' | 'vendor', optionValue: string) {
-  const supabase = createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) return { error: 'SpendWise says: Unauthorized.' };
-
-  const { error } = await supabase.from('custom_options').upsert(
-    {
-      user_id: user.id,
-      field_name: `hidden_${fieldName}`,
-      option_value: optionValue,
-    },
-    { onConflict: 'user_id,field_name,option_value' }
-  );
-
-  if (error) return { error: `SpendWise says: ${error.message}` };
-
-  revalidatePath('/dashboard');
-  return { success: true };
-}
-
-export async function deleteCustomOption(fieldName: 'category' | 'vendor' | 'hidden_category' | 'hidden_vendor', optionValue: string) {
+export async function deleteCustomOption(fieldName: string, optionValue: string) {
   const supabase = createClient();
   const {
     data: { user },
@@ -114,5 +88,7 @@ export async function deleteCustomOption(fieldName: 'category' | 'vendor' | 'hid
   if (error) return { error: `SpendWise says: ${error.message}` };
 
   revalidatePath('/dashboard');
+  revalidatePath('/transactions');
+  revalidatePath('/profile');
   return { success: true };
 }

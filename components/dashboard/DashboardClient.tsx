@@ -1,35 +1,23 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import ExpenseForm from '@/components/dashboard/ExpenseForm';
+import Link from 'next/link';
 import ExpenseList from '@/components/dashboard/ExpenseList';
 import CategoryPieChart from '@/components/dashboard/CategoryPieChart';
 import PaymentMethodBarChart from '@/components/dashboard/PaymentMethodBarChart';
 import SummaryCards from '@/components/dashboard/SummaryCards';
-import CategoryVendorModal from '@/components/dashboard/CategoryVendorModal';
 import { Expense } from '@/types';
-import { Sparkles, Calendar as CalendarIcon, Settings2 } from 'lucide-react';
+import { Sparkles, Calendar as CalendarIcon, ArrowRight, PlusCircle } from 'lucide-react';
 
 interface DashboardClientProps {
   userName: string;
   allExpenses: Expense[];
-  userCustomCategories: string[];
-  userCustomVendors: string[];
-  hiddenCategories?: string[];
-  hiddenVendors?: string[];
 }
 
 export default function DashboardClient({
   userName,
   allExpenses,
-  userCustomCategories,
-  userCustomVendors,
-  hiddenCategories = [],
-  hiddenVendors = [],
 }: DashboardClientProps) {
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-
   // Period Selector State: 'CURRENT_MONTH' | 'PREV_MONTH' | 'ALL_TIME' | string ('YYYY-MM')
   const [selectedPeriod, setSelectedPeriod] = useState<string>('CURRENT_MONTH');
 
@@ -96,14 +84,10 @@ export default function DashboardClient({
     });
   }, [allExpenses, targetYear, targetMonth]);
 
-  function handleEditClick(expense: Expense) {
-    setEditingExpense(expense);
-    window.scrollTo({ top: 150, behavior: 'smooth' });
-  }
-
-  function handleCancelEdit() {
-    setEditingExpense(null);
-  }
+  // Last 10 Transactions preview
+  const last10Expenses = useMemo(() => {
+    return allExpenses.slice(0, 10);
+  }, [allExpenses]);
 
   return (
     <div className="space-y-8">
@@ -122,14 +106,14 @@ export default function DashboardClient({
         </div>
 
         <div className="flex flex-wrap items-center gap-3 self-stretch md:self-auto">
-          {/* Manage Categories & Vendors Button */}
-          <button
-            onClick={() => setIsOptionsModalOpen(true)}
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white px-3.5 py-2 rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition shadow-xs"
+          {/* Quick Add Expense Link */}
+          <Link
+            href="/transactions"
+            className="bg-white text-sky-700 hover:bg-sky-50 px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
           >
-            <Settings2 className="w-4 h-4 text-sky-200" />
-            <span>Manage Options</span>
-          </button>
+            <PlusCircle className="w-4 h-4 text-sky-600" />
+            <span>Add Transaction</span>
+          </Link>
 
           {/* Period Selector Dropdown */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-2xl flex items-center gap-2">
@@ -169,35 +153,30 @@ export default function DashboardClient({
       {/* KPI Summary Cards */}
       <SummaryCards expenses={filteredPeriodExpenses} />
 
-      {/* Expense Addition & Editing Form */}
-      <ExpenseForm
-        editingExpense={editingExpense}
-        onCancelEdit={handleCancelEdit}
-        userCustomCategories={userCustomCategories}
-        userCustomVendors={userCustomVendors}
-      />
-
       {/* Analytics Visualizations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CategoryPieChart expenses={filteredPeriodExpenses} />
         <PaymentMethodBarChart expenses={filteredPeriodExpenses} />
       </div>
 
-      {/* Expenses Table */}
-      <ExpenseList
-        expenses={allExpenses}
-        onEditExpense={handleEditClick}
-      />
+      {/* Last 10 Transactions Section Header */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center px-1">
+          <div>
+            <h2 className="text-lg font-extrabold text-slate-800 tracking-tight">Recent Transactions</h2>
+            <p className="text-xs text-slate-400 font-medium">Previewing your last 10 expense records</p>
+          </div>
+          <Link
+            href="/transactions"
+            className="flex items-center gap-1.5 text-xs font-bold text-sky-600 hover:text-sky-700 transition px-3 py-1.5 rounded-xl hover:bg-sky-50"
+          >
+            <span>View All Transactions</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
 
-      {/* Options Management Modal */}
-      <CategoryVendorModal
-        isOpen={isOptionsModalOpen}
-        onClose={() => setIsOptionsModalOpen(false)}
-        userCustomCategories={userCustomCategories}
-        userCustomVendors={userCustomVendors}
-        hiddenCategories={hiddenCategories}
-        hiddenVendors={hiddenVendors}
-      />
+        <ExpenseList expenses={last10Expenses} />
+      </div>
     </div>
   );
 }
