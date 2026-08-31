@@ -12,6 +12,8 @@ export type ExpenseCategory =
 
 export type PaymentMethod = 'Online' | 'Offline';
 
+export type ReportFrequency = 'Daily' | 'Weekly' | 'Monthly';
+
 export interface Expense {
   id: string;
   user_id: string;
@@ -39,6 +41,8 @@ export interface Profile {
   id: string;
   full_name: string | null;
   email: string | null;
+  report_frequency: ReportFrequency;
+  last_milestone_notified?: number;
   created_at: string;
   updated_at: string;
 }

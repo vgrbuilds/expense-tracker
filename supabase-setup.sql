@@ -11,9 +11,15 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT,
     email TEXT,
+    report_frequency TEXT NOT NULL DEFAULT 'Monthly' CHECK (report_frequency IN ('Daily', 'Weekly', 'Monthly')),
+    last_milestone_notified INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Migration Statements for Profiles
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS report_frequency TEXT NOT NULL DEFAULT 'Monthly';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_milestone_notified INT NOT NULL DEFAULT 0;
 
 -- Enable RLS on Profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -32,11 +38,12 @@ CREATE POLICY "Users can insert own profile"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, email, updated_at)
+  INSERT INTO public.profiles (id, full_name, email, report_frequency, updated_at)
   VALUES (
     new.id,
     COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
     new.email,
+    'Monthly',
     NOW()
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -57,7 +64,7 @@ CREATE TRIGGER on_auth_user_created
 CREATE TABLE IF NOT EXISTS public.expenses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    title TEXT, -- Fallback / alias for description
+    title TEXT,
     description TEXT,
     amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
     date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -69,7 +76,7 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Migration Statements for Existing Database Tables
+-- Migration Statements for Expenses
 ALTER TABLE public.expenses ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE public.expenses ADD COLUMN IF NOT EXISTS vendor TEXT;
 ALTER TABLE public.expenses ADD COLUMN IF NOT EXISTS spent_for TEXT NOT NULL DEFAULT 'Self';
@@ -78,7 +85,6 @@ ALTER TABLE public.expenses ADD COLUMN IF NOT EXISTS is_recurring BOOLEAN NOT NU
 -- Enable RLS on Expenses
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 
--- Expenses RLS Policies
 CREATE POLICY "Users can view own expenses"
     ON public.expenses FOR SELECT USING (auth.uid() = user_id);
 
@@ -91,20 +97,18 @@ CREATE POLICY "Users can update own expenses"
 CREATE POLICY "Users can delete own expenses"
     ON public.expenses FOR DELETE USING (auth.uid() = user_id);
 
--- 5. Create Custom Options Table (For user-created categories, vendors, etc.)
+-- 5. Create Custom Options Table
 CREATE TABLE IF NOT EXISTS public.custom_options (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    field_name TEXT NOT NULL, -- 'category' or 'vendor'
+    field_name TEXT NOT NULL, -- 'category', 'vendor', 'spent_for', etc.
     option_value TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT unique_user_field_option UNIQUE (user_id, field_name, option_value)
 );
 
--- Enable RLS on Custom Options
 ALTER TABLE public.custom_options ENABLE ROW LEVEL SECURITY;
 
--- Custom Options RLS Policies
 CREATE POLICY "Users can view own custom_options"
     ON public.custom_options FOR SELECT USING (auth.uid() = user_id);
 

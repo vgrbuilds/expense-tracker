@@ -3,13 +3,24 @@
 import { useState } from 'react';
 import { signOut } from '@/app/actions/auth-actions';
 import ProfileModal from './ProfileModal';
-import { Wallet, User, LogOut } from 'lucide-react';
+import { ReportFrequency } from '@/types';
+import { Wallet, LogOut, Settings } from 'lucide-react';
 
 interface NavbarProps {
   userName: string;
+  userEmail?: string;
+  reportFrequency?: ReportFrequency;
+  userCustomCategories?: string[];
+  userCustomVendors?: string[];
 }
 
-export default function Navbar({ userName }: NavbarProps) {
+export default function Navbar({
+  userName,
+  userEmail,
+  reportFrequency = 'Monthly',
+  userCustomCategories = [],
+  userCustomVendors = [],
+}: NavbarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
@@ -35,6 +46,7 @@ export default function Navbar({ userName }: NavbarProps) {
                 {userName.charAt(0).toUpperCase()}
               </div>
               <span className="hidden sm:inline max-w-[120px] truncate">{userName}</span>
+              <Settings className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
             </button>
 
             <form action={signOut}>
@@ -53,6 +65,10 @@ export default function Navbar({ userName }: NavbarProps) {
 
       <ProfileModal
         currentName={userName}
+        currentEmail={userEmail}
+        currentReportFrequency={reportFrequency}
+        userCustomCategories={userCustomCategories}
+        userCustomVendors={userCustomVendors}
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
       />

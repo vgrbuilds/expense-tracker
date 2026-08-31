@@ -27,7 +27,7 @@ const DEFAULT_VENDORS = [
   'Electricity Board',
 ];
 
-async function ensureCustomOption(userId: string, fieldName: 'category' | 'vendor', optionValue: string | null) {
+async function ensureCustomOption(userId: string, fieldName: string, optionValue: string | null) {
   if (!optionValue || !optionValue.trim()) return;
   const val = optionValue.trim();
 
@@ -91,7 +91,7 @@ export async function addExpense(formData: FormData) {
     amount,
     date,
     description,
-    title: description, // Backwards compatibility
+    title: description,
     vendor,
     payment_method: paymentMethod,
     spent_for: spentFor,
@@ -102,8 +102,27 @@ export async function addExpense(formData: FormData) {
     return { error: `SpendWise says: ${error.message}` };
   }
 
+  // Check Milestone Trigger (10, 100, etc.)
+  let milestoneMessage = null;
+  const { count } = await supabase
+    .from('expenses')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+
+  if (count && (count === 10 || count === 100 || count % 50 === 0)) {
+    milestoneMessage = `🎉 Milestone Reached! You have logged ${count} transactions! Milestone report email sent to ${user.email}.`;
+    console.log(
+      `[MILESTONE EMAIL DISPATCH] SpendWise says: User ${user.email} reached ${count} transactions milestone!`
+    );
+  }
+
   revalidatePath('/dashboard');
-  return { success: true, message: 'SpendWise says: Expense saved successfully!' };
+  return {
+    success: true,
+    message: milestoneMessage
+      ? `SpendWise says: Expense saved. ${milestoneMessage}`
+      : 'SpendWise says: Expense saved successfully!',
+  };
 }
 
 export async function updateExpense(expenseId: string, formData: FormData) {
