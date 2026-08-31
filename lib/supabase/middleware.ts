@@ -29,23 +29,24 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const url = request.nextUrl.clone();
+  const pathname = url.pathname;
 
-  // Route guarding logic
-  if (!user && url.pathname.startsWith('/dashboard')) {
+  const protectedRoutes = ['/dashboard', '/transactions', '/profile'];
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+
+  // If unauthenticated user tries to access protected page -> redirect to /login
+  if (!user && isProtectedRoute) {
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  if (user && (url.pathname === '/login' || url.pathname === '/signup' || url.pathname === '/')) {
+  // If authenticated user hits root /, /login, or /signup -> redirect to /dashboard
+  if (user && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }

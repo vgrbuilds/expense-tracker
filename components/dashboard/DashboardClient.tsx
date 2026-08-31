@@ -2,12 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import ExpenseList from '@/components/dashboard/ExpenseList';
 import CategoryPieChart from '@/components/dashboard/CategoryPieChart';
 import PaymentMethodBarChart from '@/components/dashboard/PaymentMethodBarChart';
 import SummaryCards from '@/components/dashboard/SummaryCards';
 import { Expense } from '@/types';
-import { Sparkles, Calendar as CalendarIcon, ArrowRight, PlusCircle } from 'lucide-react';
+import { Sparkles, Calendar as CalendarIcon, ArrowRight, PlusCircle, ReceiptText, User } from 'lucide-react';
 
 interface DashboardClientProps {
   userName: string;
@@ -84,11 +83,6 @@ export default function DashboardClient({
     });
   }, [allExpenses, targetYear, targetMonth]);
 
-  // Last 10 Transactions preview
-  const last10Expenses = useMemo(() => {
-    return allExpenses.slice(0, 10);
-  }, [allExpenses]);
-
   return (
     <div className="space-y-8">
       {/* Welcome Greeting Header */}
@@ -106,10 +100,10 @@ export default function DashboardClient({
         </div>
 
         <div className="flex flex-wrap items-center gap-3 self-stretch md:self-auto">
-          {/* Quick Add Expense Link */}
+          {/* Quick Nav to Transactions */}
           <Link
             href="/transactions"
-            className="bg-white text-sky-700 hover:bg-sky-50 px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+            className="bg-white text-sky-700 hover:bg-sky-50 px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs hover:scale-[1.02] active:scale-[0.98]"
           >
             <PlusCircle className="w-4 h-4 text-sky-600" />
             <span>Add Transaction</span>
@@ -159,23 +153,47 @@ export default function DashboardClient({
         <PaymentMethodBarChart expenses={filteredPeriodExpenses} />
       </div>
 
-      {/* Last 10 Transactions Section Header */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center px-1">
-          <div>
-            <h2 className="text-lg font-extrabold text-slate-800 tracking-tight">Recent Transactions</h2>
-            <p className="text-xs text-slate-400 font-medium">Previewing your last 10 expense records</p>
+      {/* Quick Navigation Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link
+          href="/transactions"
+          className="group bg-white p-6 rounded-3xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all duration-300 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold group-hover:scale-105 transition">
+              <ReceiptText className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800 group-hover:text-sky-600 transition">
+                Manage Transactions
+              </h3>
+              <p className="text-xs text-slate-400 font-medium mt-0.5">
+                Log new expenses, search, filter, and export CSV reports.
+              </p>
+            </div>
           </div>
-          <Link
-            href="/transactions"
-            className="flex items-center gap-1.5 text-xs font-bold text-sky-600 hover:text-sky-700 transition px-3 py-1.5 rounded-xl hover:bg-sky-50"
-          >
-            <span>View All Transactions</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+          <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-sky-600 group-hover:translate-x-1 transition" />
+        </Link>
 
-        <ExpenseList expenses={last10Expenses} />
+        <Link
+          href="/profile"
+          className="group bg-white p-6 rounded-3xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-indigo-300 transition-all duration-300 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold group-hover:scale-105 transition">
+              <User className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800 group-hover:text-indigo-600 transition">
+                Profile & Custom Options
+              </h3>
+              <p className="text-xs text-slate-400 font-medium mt-0.5">
+                Manage account settings, custom categories, vendors & report frequencies.
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition" />
+        </Link>
       </div>
     </div>
   );
