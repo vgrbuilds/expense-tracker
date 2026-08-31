@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { updateProfile, updatePassword } from '@/app/actions/profile-actions';
 import { saveCustomOption, deleteCustomOption } from '@/app/actions/custom-option-actions';
 import { ReportFrequency } from '@/types';
-import { User, KeyRound, Bell, Settings, CheckCircle2, AlertCircle, Plus, Trash2, Tag, Store, ShieldCheck } from 'lucide-react';
+import { User, KeyRound, Bell, Settings, CheckCircle2, AlertCircle, Plus, Trash2, Tag, Store, ArrowLeft } from 'lucide-react';
 
 interface ProfileClientProps {
   userName: string;
@@ -105,12 +106,15 @@ export default function ProfileClient({
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
+      {/* Page Header with Top Back Arrow */}
       <div className="bg-gradient-to-r from-sky-600 via-sky-700 to-indigo-800 rounded-3xl p-8 text-white shadow-xl shadow-sky-900/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold tracking-wide text-sky-100 mb-3 border border-white/15">
-            <User className="w-3.5 h-3.5" /> Account & Preferences Center
-          </div>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold tracking-wide text-sky-100 mb-3 border border-white/15 transition"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
+          </Link>
           <h1 className="text-3xl font-extrabold tracking-tight">Profile & Settings</h1>
           <p className="text-sky-100 text-sm mt-1.5 max-w-xl">
             Manage your personal profile, security credentials, report frequency, and custom dropdown options.

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import ExpenseForm from '@/components/dashboard/ExpenseForm';
 import ExpenseList from '@/components/dashboard/ExpenseList';
 import { Expense } from '@/types';
-import { ReceiptText, PlusCircle } from 'lucide-react';
+import { ReceiptText, ArrowLeft } from 'lucide-react';
 
 interface TransactionsClientProps {
   allExpenses: Expense[];
@@ -32,12 +33,15 @@ export default function TransactionsClient({
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
+      {/* Page Header with Top Back Arrow */}
       <div className="bg-gradient-to-r from-sky-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl shadow-sky-900/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold tracking-wide text-sky-100 mb-3 border border-white/15">
-            <ReceiptText className="w-3.5 h-3.5" /> Financial Log & Record Keeping
-          </div>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold tracking-wide text-sky-100 mb-3 border border-white/15 transition"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
+          </Link>
           <h1 className="text-3xl font-extrabold tracking-tight">Expense Transactions</h1>
           <p className="text-sky-100 text-sm mt-1.5 max-w-xl">
             Add new transactions, edit existing logs, search, filter, and export your expense records to CSV.
@@ -54,7 +58,7 @@ export default function TransactionsClient({
         userCustomSpentForOptions={userCustomSpentForOptions}
       />
 
-      {/* Full Transactions List */}
+      {/* Full Transactions List Table */}
       <ExpenseList
         expenses={allExpenses}
         onEditExpense={handleEditClick}

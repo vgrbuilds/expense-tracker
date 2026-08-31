@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
 import { addExpense, updateExpense } from '@/app/actions/expense-actions';
 import { PaymentMethod, Expense } from '@/types';
-import { PlusCircle, Edit3, AlertCircle, CheckCircle2, X, ChevronDown, Tag, Store, User, Settings2 } from 'lucide-react';
+import { PlusCircle, Edit3, AlertCircle, CheckCircle2, X, ChevronDown, Tag, Store, User } from 'lucide-react';
 
 const DEFAULT_CATEGORIES = [
   'Grocery',
@@ -133,7 +132,7 @@ export default function ExpenseForm({
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-300 border border-slate-200/90 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+      <div className="flex justify-between items-center pb-3 border-b border-slate-100">
         <div>
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
             {editingExpense ? (
@@ -148,29 +147,17 @@ export default function ExpenseForm({
               </>
             )}
           </h2>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">
-            Fill in expense details below. Custom options can be added in Profile & Settings.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          <Link
-            href="/profile"
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-xl transition border border-sky-100"
+        {editingExpense && onCancelEdit && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition"
           >
-            <Settings2 className="w-3.5 h-3.5" /> Manage Custom Options
-          </Link>
-
-          {editingExpense && onCancelEdit && (
-            <button
-              type="button"
-              onClick={onCancelEdit}
-              className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl transition"
-            >
-              <X className="w-4 h-4" /> Cancel Edit
-            </button>
-          )}
-        </div>
+            <X className="w-4 h-4" /> Cancel Edit
+          </button>
+        )}
       </div>
 
       {notification && (
